@@ -5,7 +5,7 @@ import Data.Char
 import Data.Maybe
 import Data.Time
 import Data.Time.Clock.POSIX
-import System.Environment (getArgs)
+import System.Environment
 import System.IO
 
 countLines :: String -> IO Int
@@ -72,9 +72,8 @@ parseEsc (x:xs)   | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
 
 main :: IO ()
 main = do
-  args <- getArgs
-  path <- if null args then return "dictionary.txt"
-                       else return $ head args
+  home <- getEnv "HOME"
+  let path = home ++ "/.config/wotd/dictionary.txt"
 
   d <- daysSinceEpoch
   l <- countLines path
