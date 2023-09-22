@@ -80,10 +80,12 @@ main = do
   wotdRaw <- getLineAtIndex path (d `mod` l)
 
   zt <- getZonedTime
+	putStrLn "----------------------------------"
   putStr "Word of the day: "
   putStrLn $ formatTime defaultTimeLocale "%e %B, %Y" zt
 
   let (word, def) = runParser wotdRaw
   putStrLn $ map toUpper word
   putStrLn def
+	putStrLn "----------------------------------"
 
