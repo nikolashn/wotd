@@ -73,8 +73,8 @@ parseEsc (x:xs)   | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
 main :: IO ()
 main = do
   args <- getArgs
-  path <- if length args < 2 then return "dictionary.txt"
-                             else return $ args !! 1
+  path <- if null args then return "dictionary.txt"
+                       else return $ head args
 
   d <- daysSinceEpoch
   l <- countLines path
