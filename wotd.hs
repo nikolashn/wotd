@@ -85,7 +85,7 @@ main = do
   putStrLn $ formatTime defaultTimeLocale "%e %B, %Y" zt
 
   let (word, def) = runParser wotdRaw
-  putStrLn $ map toUpper word
+  putStrLn $ "---- " ++ map toUpper word ++ " ----"
   putStrLn def
   putStrLn "----------------------------------"
 
