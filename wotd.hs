@@ -5,6 +5,7 @@ import Data.Char
 import Data.Maybe
 import Data.Time
 import Data.Time.Clock.POSIX
+import System.Environment (getArgs)
 import System.IO
 
 countLines :: String -> IO Int
@@ -71,9 +72,13 @@ parseEsc (x:xs)   | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
 
 main :: IO ()
 main = do
+  args <- getArgs
+  path <- if null args then return "dictionary.txt"
+                       else return $ head args
+
   d <- daysSinceEpoch
-  l <- countLines "dictionary.txt"
-  wotdRaw <- getLineAtIndex "dictionary.txt" (d `mod` l)
+  l <- countLines path
+  wotdRaw <- getLineAtIndex path (d `mod` l)
 
   zt <- getZonedTime
   putStr "Word of the day: "
