@@ -7,6 +7,7 @@ import Data.Time
 import Data.Time.Clock.POSIX
 import System.Environment
 import System.IO
+import System.Random
 
 countLines :: String -> IO Int
 countLines path =
@@ -72,20 +73,36 @@ parseEsc (x:xs)   | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
 
 main :: IO ()
 main = do
-  home <- getEnv "HOME"
-  let path = home ++ "/.config/wotd/dictionary.txt"
+  args <- getArgs
 
-  d <- daysSinceEpoch
-  l <- countLines path
-  wotdRaw <- getLineAtIndex path (d `mod` l)
+  if not $ all (`elem` ["-h", "-r"]) args then
+    error "Unexpected arguments. Use wotd -h for a list of options."
 
-  zt <- getZonedTime
-  putStrLn "----------------------------------"
-  putStr "Word of the day: "
-  putStrLn $ formatTime defaultTimeLocale "%e %B, %Y" zt
+  else if ("-h" `elem` args) then do
+    putStrLn "Usage:"
+    putStrLn "  wotd      Define the word of the day today."
+    putStrLn "  wotd -h   Display this help menu."
+    putStrLn "  wotd -r   Define a random word."
 
-  let (word, def) = runParser wotdRaw
-  putStrLn $ "---- " ++ map toUpper word ++ " ----"
-  putStrLn def
-  putStrLn "----------------------------------"
+  else do -- Options that print a word
+    home <- getEnv "HOME"
+    let path = home ++ "/.config/wotd/dictionary.txt"
+    wordCount <- countLines path
+
+    putStrLn "----------------------------------"
+    raw <- 
+      if ("-r" `elem` args) then do
+        r <- randomIO
+        getLineAtIndex path $ fst $ randomR (0, wordCount - 1) $ mkStdGen r
+      else do
+        zt <- getZonedTime
+        putStr "Word of the Day: "
+        putStrLn $ formatTime defaultTimeLocale "%e %B, %Y" zt
+        d <- daysSinceEpoch
+        getLineAtIndex path (d `mod` wordCount)
+
+    let (word, def) = runParser raw
+    putStrLn $ "---- " ++ map toUpper word ++ " ----"
+    putStrLn def
+    putStrLn "----------------------------------"
 
