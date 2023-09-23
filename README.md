@@ -9,3 +9,11 @@ which I got from
 
 dictionary.txt syntax per line (regular expression):\
 `"\body*":"\body*"` where `\body` = `([^"\\]|\\"|\\\\|\\/|\\n)`.
+
+## Usage
+`wotd` - Print today's word.
+
+`wotd -h` - Display help menu.
+
+`wotd -r` - Define a random word.
+
