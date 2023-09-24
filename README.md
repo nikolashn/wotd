@@ -16,6 +16,8 @@ Run `install.sh`. Requires `ghc`.
 ## Usage
 `wotd` - Print today's word.
 
+`wotd <WORD>` - Define a particular word.
+
 `wotd -h` - Display help menu.
 
 `wotd -r` - Define a random word.
