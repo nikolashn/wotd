@@ -71,10 +71,10 @@ parseBody (x:xs) | x == '"'  = return (x:xs, "")
                  | otherwise = parseBodyPlus xs x
 
 parseEsc :: String -> Parser
-parseEsc ""       = mzero
-parseEsc (x:xs)   | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
-                  | x == 'n'                  = parseBodyPlus xs '\n'
-                  | otherwise                 = mzero
+parseEsc ""     = mzero
+parseEsc (x:xs) | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
+                | x == 'n'                  = parseBodyPlus xs '\n'
+                | otherwise                 = mzero
 
 bigLine :: String
 bigLine = "----------------------------------"
