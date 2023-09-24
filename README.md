@@ -10,6 +10,9 @@ which I got from
 dictionary.txt syntax per line (regular expression):\
 `"\body*":"\body*"` where `\body` = `([^"\\]|\\"|\\\\|\\/|\\n)`.
 
+## Installation
+Run `install.sh`. Requires `ghc`.
+
 ## Usage
 `wotd` - Print today's word.
 
