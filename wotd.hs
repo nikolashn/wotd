@@ -93,7 +93,7 @@ main = do
   args <- getArgs
 
   if not $ all (`elem` ["-h", "-r"]) (filter (isPrefixOf "-") args) then
-    error "Unexpected options. Use wotd -h for a list of options."
+    error "Unexpected option(s). Use wotd -h for a list of options."
 
   else if ("-h" `elem` args) then do
     putStrLn "Usage:"
