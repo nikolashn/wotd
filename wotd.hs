@@ -56,7 +56,7 @@ parseStr s = do
 
 parseDropCh :: Char -> String -> Parser
 parseDropCh c ""     = mzero
-parseDropCh c (x:xs) = do if x == c then return (xs, "") else mzero
+parseDropCh c (x:xs) = if x == c then return (xs, "") else mzero
 
 parseBodyPlus :: String -> Char -> Parser
 parseBodyPlus xs x = do (rs, os) <- parseBody xs; return (rs, x:os)
