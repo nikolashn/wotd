@@ -74,18 +74,18 @@ parseEsc (x:xs)   | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
                   | x == 'n'                  = parseBodyPlus xs '\n'
                   | otherwise                 = mzero
 
+bigLine :: String
+bigLine = "----------------------------------"
+
 printWord :: String -> IO ()
-printWord raw = do
-  let (word, def) = runParser raw
-  putStrLn "----------------------------------"
-  putStrLn $ "---- " ++ map toUpper word ++ " ----"
-  putStrLn def
-  putStrLn "----------------------------------"
+printWord raw = putStr $ unlines
+  [ bigLine, "---- " ++ map toUpper word ++ " ----", def, bigLine ]
+  where (word, def) = runParser raw
 
 printWOTD :: String -> IO ()
 printWOTD raw = do
-  putStrLn "----------------------------------"
-  putStr "Word of the Day: "
+  putStrLn bigLine
+  putStrLn "Word of the Day: "
   getZonedTime >>= putStrLn . formatTime defaultTimeLocale "%e %B, %Y"
   printWord raw
 
@@ -96,12 +96,13 @@ main = do
   if not $ all (`elem` ["-h", "-r"]) (filter (isPrefixOf "-") args) then
     error "Unexpected option(s). Use wotd -h for a list of options."
 
-  else if ("-h" `elem` args) then do
-    putStrLn "Usage:"
-    putStrLn "  wotd          Define the word of the day today."
-    putStrLn "  wotd <WORD>   Define a particular word."
-    putStrLn "  wotd -h       Display this help menu."
-    putStrLn "  wotd -r       Define a random word."
+  else if ("-h" `elem` args) then putStr $ unlines
+    [ "Usage:"
+    , "  wotd          Define the word of the day today."
+    , "  wotd <WORD>   Define a particular word."
+    , "  wotd -h       Display this help menu."
+    , "  wotd -r       Define a random word."
+    ]
 
   else do -- Options that print a word
     home <- getEnv "HOME"
