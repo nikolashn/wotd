@@ -43,9 +43,10 @@ type Parser = Maybe (String, String)
 
 runParser :: String -> (String, String)
 runParser s = (word, def)
-  where (rest1, word) = fromJust $ parseStr s
-        (rest2, _)    = fromJust $ parseDropCh ':' rest1
-        (rest3, def)  = fromJust $ parseStr rest2
+  where (rest1, word) = fromMaybe syntaxError $ parseStr s
+        (rest2, _)    = fromMaybe syntaxError $ parseDropCh ':' rest1
+        (rest3, def)  = fromMaybe syntaxError $ parseStr rest2
+        syntaxError   = error "Invalid syntax in file"
 
 parseStr :: String -> Parser
 parseStr s = do
