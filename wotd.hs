@@ -35,18 +35,20 @@ findWordIn :: String -> String -> IO String
 findWordIn path s = openFile path ReadMode >>= fw
   where fw h = do
                  line <- hGetLine h
-                 let (word, _) = runParser line
+                 let (word, _) = fromParse $ runParser line
                  if word == s then hClose h >> return line
                               else fw h
 
 type Parser = Maybe (String, String)
 
-runParser :: String -> (String, String)
-runParser s = (word, def)
-  where (rest1, word) = fromJust' $ parseStr s
-        (rest2, _)    = fromJust' $ parseDropCh ':' rest1
-        (rest3, def)  = fromJust' $ parseStr rest2
-        fromJust'     = fromMaybe $ error "Invalid syntax in dictionary"
+fromParse = fromMaybe $ error "Invalid syntax in dictionary"
+
+runParser :: String -> Parser
+runParser s = do
+  (rest1, word) <- parseStr s
+  (rest2, _) <- parseDropCh ':' rest1
+  (rest3, def) <- parseStr rest2
+  return (word, def)
 
 parseStr :: String -> Parser
 parseStr s = do
@@ -80,7 +82,7 @@ bigLine = "----------------------------------"
 printWord :: String -> IO ()
 printWord raw = putStr $ unlines
   [ bigLine, "---- " ++ map toUpper word ++ " ----", def, bigLine ]
-  where (word, def) = runParser raw
+  where (word, def) = fromParse $ runParser raw
 
 printWOTD :: String -> IO ()
 printWOTD raw = do
