@@ -46,7 +46,7 @@ runParser s = (word, def)
   where (rest1, word) = fromMaybe syntaxError $ parseStr s
         (rest2, _)    = fromMaybe syntaxError $ parseDropCh ':' rest1
         (rest3, def)  = fromMaybe syntaxError $ parseStr rest2
-        syntaxError   = error "Invalid syntax in file"
+        syntaxError   = error "Invalid syntax in dictionary"
 
 parseStr :: String -> Parser
 parseStr s = do
