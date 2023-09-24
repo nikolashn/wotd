@@ -31,7 +31,7 @@ getLineAtIndex path i = openFile path ReadMode >>= gl i
                    if n == 0 then hClose h >> return line
                              else gl (n-1) h
 
-findWordIn :: String -> String -> IO (String)
+findWordIn :: String -> String -> IO String
 findWordIn path s = openFile path ReadMode >>= fw
   where fw h = do
                  line <- hGetLine h
