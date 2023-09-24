@@ -10,32 +10,25 @@ import System.IO
 import System.Random
 
 countLines :: String -> IO Int
-countLines path =
-  do h <- openFile path ReadMode; n <- cl h; hClose h; return n
+countLines path = openFile path ReadMode >>= cl
   where cl h = do
                  eof <- hIsEOF h
-                 if eof then do return 0
-                        else do hGetLine h; n <- cl h; return (1 + n)
+                 if eof then hClose h >> return 0
+                        else hGetLine h >> cl h >>= return . (1 +)
 
 daysSinceEpoch :: IO Int
 daysSinceEpoch = do
   zone <- getCurrentTimeZone
   time <- getCurrentTime
-  return $ (floor (utcTimeToPOSIXSeconds time) + 60 * timeZoneMinutes zone)
-           `div` (60 * 60 * 24)
+  return $ div (floor (utcTimeToPOSIXSeconds time) + 60 * timeZoneMinutes zone)
+               (60 * 60 * 24)
 
 getLineAtIndex :: String -> Int -> IO String
-getLineAtIndex path i =
-  do h <- openFile path ReadMode; s <- gl h i; hClose h; return s
-  where gl h n = do
-                   eof <- hIsEOF h
-                   if eof then
-                     return $ error $ "Line " ++ show i ++ " of "
-                                      ++ path ++ " not read."
-                   else
-                     do
-                       s <- hGetLine h
-                       if n == 0 then return s else gl h (n-1)
+getLineAtIndex path i = openFile path ReadMode >>= gl i
+  where gl n h = do
+                   s <- hGetLine h
+                   if n == 0 then hClose h >> return s
+                             else gl (n-1) h
 
 type Parser = Maybe (String, String)
 
