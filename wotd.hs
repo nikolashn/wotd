@@ -15,7 +15,7 @@ countLines path = openFile path ReadMode >>= cl
   where cl h = do
                  eof <- hIsEOF h
                  if eof then hClose h >> return 0
-                        else hGetLine h >> cl h >>= return . (1 +)
+                        else liftM (1 +) (hGetLine h >> cl h)
 
 daysSinceEpoch :: IO Int
 daysSinceEpoch = do
