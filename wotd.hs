@@ -47,7 +47,7 @@ runParser :: String -> Parser
 runParser s = do
   (rest1, word) <- parseStr s
   (rest2, _) <- parseDropCh ':' rest1
-  (rest3, def) <- parseStr rest2
+  (_, def) <- parseStr rest2
   return (word, def)
 
 parseStr :: String -> Parser
