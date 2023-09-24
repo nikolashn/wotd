@@ -119,7 +119,8 @@ main = do
     else if null args then do
       n <- countLines path
       d <- daysSinceEpoch
-      getLineAtIndex path (d `mod` n) >>= printWOTD
+      getLineAtIndex path (mod d n) >>= printWOTD
 
-    else findWordIn path (intercalate " " args) >>= printWord
+    else
+      findWordIn path (map toLower $ intercalate " " args) >>= printWord
 
