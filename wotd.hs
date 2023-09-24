@@ -2,6 +2,7 @@ module Main where
 
 import Control.Monad
 import Data.Char
+import Data.List
 import Data.Maybe
 import Data.Time
 import Data.Time.Clock.POSIX
@@ -26,9 +27,17 @@ daysSinceEpoch = do
 getLineAtIndex :: String -> Int -> IO String
 getLineAtIndex path i = openFile path ReadMode >>= gl i
   where gl n h = do
-                   s <- hGetLine h
-                   if n == 0 then hClose h >> return s
+                   line <- hGetLine h
+                   if n == 0 then hClose h >> return line
                              else gl (n-1) h
+
+findWordIn :: String -> String -> IO (String)
+findWordIn path s = openFile path ReadMode >>= fw
+  where fw h = do
+                 line <- hGetLine h
+                 let (word, _) = runParser line
+                 if word == s then hClose h >> return line
+                              else fw h
 
 type Parser = Maybe (String, String)
 
@@ -64,38 +73,49 @@ parseEsc (x:xs)   | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
                   | x == 'n'                  = parseBodyPlus xs '\n'
                   | otherwise                 = mzero
 
+printWord :: String -> IO ()
+printWord raw = do
+  let (word, def) = runParser raw
+  putStrLn "----------------------------------"
+  putStrLn $ "---- " ++ map toUpper word ++ " ----"
+  putStrLn def
+  putStrLn "----------------------------------"
+
+printWOTD :: String -> IO ()
+printWOTD raw = do
+  putStrLn "----------------------------------"
+  putStr "Word of the Day: "
+  getZonedTime >>= putStrLn . formatTime defaultTimeLocale "%e %B, %Y"
+  printWord raw
+
 main :: IO ()
 main = do
   args <- getArgs
 
-  if not $ all (`elem` ["-h", "-r"]) args then
-    error "Unexpected arguments. Use wotd -h for a list of options."
+  if not $ all (`elem` ["-h", "-r"]) (filter (isPrefixOf "-") args) then
+    error "Unexpected options. Use wotd -h for a list of options."
 
   else if ("-h" `elem` args) then do
     putStrLn "Usage:"
-    putStrLn "  wotd      Define the word of the day today."
-    putStrLn "  wotd -h   Display this help menu."
-    putStrLn "  wotd -r   Define a random word."
+    putStrLn "  wotd          Define the word of the day today."
+    putStrLn "  wotd <WORD>   Define a particular word."
+    putStrLn "  wotd -h       Display this help menu."
+    putStrLn "  wotd -r       Define a random word."
 
   else do -- Options that print a word
     home <- getEnv "HOME"
     let path = home ++ "/.config/wotd/dictionary.txt"
-    wordCount <- countLines path
 
-    putStrLn "----------------------------------"
-    raw <- 
-      if ("-r" `elem` args) then do
-        r <- randomIO
-        getLineAtIndex path $ fst $ randomR (0, wordCount - 1) $ mkStdGen r
-      else do
-        zt <- getZonedTime
-        putStr "Word of the Day: "
-        putStrLn $ formatTime defaultTimeLocale "%e %B, %Y" zt
-        d <- daysSinceEpoch
-        getLineAtIndex path (d `mod` wordCount)
+    if ("-r" `elem` args) then do
+      n <- countLines path
+      r <- randomIO
+      (getLineAtIndex path $ fst $ randomR (0, n - 1) $ mkStdGen r)
+        >>= printWord
 
-    let (word, def) = runParser raw
-    putStrLn $ "---- " ++ map toUpper word ++ " ----"
-    putStrLn def
-    putStrLn "----------------------------------"
+    else if null args then do
+      n <- countLines path
+      d <- daysSinceEpoch
+      getLineAtIndex path (d `mod` n) >>= printWOTD
+
+    else findWordIn path (intercalate " " args) >>= printWord
 
