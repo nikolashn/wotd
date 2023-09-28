@@ -14,11 +14,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B
 
 countLines :: String -> IO Int
-countLines path = openFile path ReadMode >>= cl
-  where cl h = do
-                 eof <- hIsEOF h
-                 if eof then hClose h >> return 0
-                        else liftM (1 +) (B.hGetLine h >> cl h)
+countLines path = openFile path ReadMode >>= B.hGetContents
+                    >>= return . B.count 10
 
 daysSinceEpoch :: IO Int
 daysSinceEpoch = do
@@ -28,11 +25,9 @@ daysSinceEpoch = do
                (60 * 60 * 24)
 
 getLineAtIndex :: String -> Int -> IO B.ByteString
-getLineAtIndex path i = openFile path ReadMode >>= gl i
-  where gl n h = do
-                   line <- B.hGetLine h
-                   if n == 0 then hClose h >> return line
-                             else gl (n-1) h
+getLineAtIndex path i = openFile path ReadMode >>= loop i
+  where loop n h | n == 0    = do l <- B.hGetLine h; hClose h; return l
+                 | otherwise = B.hGetLine h >> loop (n-1) h
 
 findWordIn :: String -> String -> IO B.ByteString
 findWordIn path s = openFile path ReadMode >>= fw
