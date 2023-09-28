@@ -10,12 +10,15 @@ import System.Environment
 import System.IO
 import System.Random
 
+import qualified Data.ByteString as B
+import qualified Data.ByteString.UTF8 as B
+
 countLines :: String -> IO Int
 countLines path = openFile path ReadMode >>= cl
   where cl h = do
                  eof <- hIsEOF h
                  if eof then hClose h >> return 0
-                        else liftM (1 +) (hGetLine h >> cl h)
+                        else liftM (1 +) (B.hGetLine h >> cl h)
 
 daysSinceEpoch :: IO Int
 daysSinceEpoch = do
@@ -24,18 +27,18 @@ daysSinceEpoch = do
   return $ div (floor (utcTimeToPOSIXSeconds time) + 60 * timeZoneMinutes zone)
                (60 * 60 * 24)
 
-getLineAtIndex :: String -> Int -> IO String
+getLineAtIndex :: String -> Int -> IO B.ByteString
 getLineAtIndex path i = openFile path ReadMode >>= gl i
   where gl n h = do
-                   line <- hGetLine h
+                   line <- B.hGetLine h
                    if n == 0 then hClose h >> return line
                              else gl (n-1) h
 
-findWordIn :: String -> String -> IO String
+findWordIn :: String -> String -> IO B.ByteString
 findWordIn path s = openFile path ReadMode >>= fw
   where fw h = do
-                 line <- hGetLine h
-                 let (word, _) = fromParse $ runParser line
+                 line <- B.hGetLine h
+                 let (_, word) = fromParse $ parseStr $ B.toString line
                  if word == s then hClose h >> return line
                               else fw h
 
@@ -79,12 +82,12 @@ parseEsc (x:xs) | x `elem` ['"', '\\', '/'] = parseBodyPlus xs x
 bigLine :: String
 bigLine = "----------------------------------"
 
-printWord :: String -> IO ()
-printWord raw = putStr $ unlines
+printWord :: B.ByteString -> IO ()
+printWord raw = B.putStr $ B.fromString $ unlines $ 
   [ bigLine, "---- " ++ map toUpper word ++ " ----", def, bigLine ]
-  where (word, def) = fromParse $ runParser raw
+  where (word, def) = fromParse $ runParser $ B.toString raw
 
-printWOTD :: String -> IO ()
+printWOTD :: B.ByteString -> IO ()
 printWOTD raw = do
   putStrLn bigLine
   putStrLn "Word of the Day: "
@@ -119,8 +122,10 @@ main = do
     else if null args then do
       n <- countLines path
       d <- daysSinceEpoch
-      getLineAtIndex path (mod d n) >>= printWOTD
+      (getLineAtIndex path $ mod d n)
+        >>= printWOTD
 
     else
-      findWordIn path (map toLower $ intercalate " " args) >>= printWord
+      (findWordIn path $ map toLower $ intercalate " " args)
+        >>= printWord
 
